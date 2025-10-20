@@ -63,7 +63,6 @@ export class YSupabaseProvider {
     this.#ch.on('broadcast', { event: 'y-sync-resp' }, ({ payload }) => {
       try {
         const u = fromB64(payload.update);
-        console.log('[YSupa] apply y-sync-resp len=', u.length);
         Y.applyUpdate(this.#doc, u);
       } catch (e) {
         console.warn('[YSupa] apply sync-resp failed', e);
@@ -73,7 +72,6 @@ export class YSupabaseProvider {
     // Wait for channel to be subscribed
     await new Promise<void>((resolve, reject) => {
       this.#ch.subscribe((status) => {
-        console.log('[YSupa] status', status);
         if (status === 'SUBSCRIBED') resolve();
         if (status === 'CHANNEL_ERROR') reject(new Error('Realtime channel error'));
       });
@@ -84,7 +82,6 @@ export class YSupabaseProvider {
       const onUpdate = (_u: Uint8Array, _origin: unknown, _doc: Y.Doc, tr: any) => {
         // Only send if this change originated locally (not from applyUpdate)
         if (!tr?.local) return;
-        console.log('[YSupa] send y-update len=', _u.length);
         this.#ch.send({
           type: 'broadcast',
           event: 'y-update',
